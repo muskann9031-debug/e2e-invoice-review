@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from decimal import Decimal
 from typing import Any
 
@@ -11,17 +12,18 @@ from app.schemas.common import (
     parse_currency_field,
     parse_date_field,
     parse_number_field,
-    parse_object_fields,
+    parse_object_array_field,
     parse_string_field,
     parse_time_field,
 )
 from app.schemas.receipt.model import ReceiptExtraction, ReceiptLineItem
 
+logger = logging.getLogger(__name__)
+
 
 def _map_tax_details(fields: dict[str, Any]) -> list[TaxDetail]:
     tax_details: list[TaxDetail] = []
-    for entry in parse_array_field(fields.get("TaxDetails")):
-        value_object = parse_object_fields(entry.get("valueObject"))
+    for value_object in parse_object_array_field(fields.get("TaxDetails"), "TaxDetails"):
         tax_details.append(
             TaxDetail(
                 amount=parse_currency_field(value_object.get("Amount")),
@@ -33,8 +35,7 @@ def _map_tax_details(fields: dict[str, Any]) -> list[TaxDetail]:
 
 def _map_receipt_items(fields: dict[str, Any]) -> list[ReceiptLineItem]:
     items: list[ReceiptLineItem] = []
-    for entry in parse_array_field(fields.get("Items")):
-        value_object = parse_object_fields(entry.get("valueObject"))
+    for value_object in parse_object_array_field(fields.get("Items"), "Items"):
         items.append(
             ReceiptLineItem(
                 description=parse_string_field(value_object.get("Description")),
@@ -52,7 +53,15 @@ def _map_receipt_items(fields: dict[str, Any]) -> list[ReceiptLineItem]:
 
 def _map_merchant_aliases(fields: dict[str, Any]) -> list[ExtractedString]:
     aliases = []
-    for entry in parse_array_field(fields.get("MerchantAliases")):
+    entries = parse_array_field(fields.get("MerchantAliases"), "MerchantAliases")
+    for index, entry in enumerate(entries):
+        if not isinstance(entry, dict):
+            logger.warning(
+                "Skipping malformed Document Intelligence MerchantAliases entry at index %d: "
+                "expected an object.",
+                index,
+            )
+            continue
         alias = parse_string_field(entry)
         if alias:
             aliases.append(alias)

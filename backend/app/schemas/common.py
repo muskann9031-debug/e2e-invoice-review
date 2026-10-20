@@ -1,10 +1,13 @@
 from __future__ import annotations
 
+import logging
 from datetime import date, time
 from decimal import Decimal
 from typing import Any
 
 from pydantic import BaseModel
+
+logger = logging.getLogger(__name__)
 
 
 class ExtractedString(BaseModel):
@@ -126,16 +129,49 @@ def parse_number_field(field: dict[str, Any] | None) -> ExtractedNumber | None:
     )
 
 
-def parse_array_field(field: dict[str, Any] | None) -> list[dict[str, Any]]:
-    if not field:
+def parse_array_field(field: Any, field_name: str) -> list[Any]:
+    if field is None:
         return []
-    return field.get("valueArray") or []
+    if not isinstance(field, dict):
+        logger.warning(
+            "Skipping malformed Document Intelligence collection %s: expected an object.",
+            field_name,
+        )
+        return []
+    items = field.get("valueArray")
+    if items is None:
+        return []
+    if not isinstance(items, list):
+        logger.warning(
+            "Skipping malformed Document Intelligence collection %s: expected an array.",
+            field_name,
+        )
+        return []
+    return items
 
 
-def parse_object_fields(value_object: dict[str, Any] | None) -> dict[str, Any]:
-    if not value_object:
-        return {}
-    return value_object
+def parse_object_array_field(field: Any, field_name: str) -> list[dict[str, Any]]:
+    objects: list[dict[str, Any]] = []
+    for index, item in enumerate(parse_array_field(field, field_name)):
+        if not isinstance(item, dict):
+            logger.warning(
+                "Skipping malformed Document Intelligence %s entry at index %d: "
+                "expected an object.",
+                field_name,
+                index,
+            )
+            continue
+        value_object = item.get("valueObject")
+        if not isinstance(value_object, dict) or not value_object:
+            logger.warning(
+                "Skipping malformed Document Intelligence %s entry at index %d: "
+                "expected a non-empty valueObject.",
+                field_name,
+                index,
+            )
+            continue
+        objects.append(value_object)
+    return objects
 
 
 def _collect_confidences(value: BaseModel, confidences: list[float]) -> None:

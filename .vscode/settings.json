@@ -1,4 +1,4 @@
 {
-  "python.defaultInterpreterPath": "${workspaceFolder}/backend/.venv/bin/python",
-  "cursorpyright.analysis.extraPaths": ["${workspaceFolder}/backend"]
+  "cursorpyright.analysis.extraPaths": ["${workspaceFolder}/backend"],
+  "python.terminal.useEnvFile": true
 }

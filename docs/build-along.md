@@ -26,6 +26,37 @@ cp frontend/.env.example frontend/.env
 ./scripts/dev.sh
 ```
 
+## Select the backend Python environment
+
+The workspace does not hardcode a POSIX-only `.venv/bin/python` path. Select
+the backend virtual environment through VS Code's Python interpreter picker;
+the integrated terminal continues to load environment variables from `.env`.
+
+### Why this boundary exists
+
+Interpreter executable paths differ across operating systems. A shared workspace
+setting must not point Windows users at a nonexistent `bin/python` executable.
+
+### Commands
+
+```bash
+cd backend
+uv sync --locked
+```
+
+Then run **Python: Select Interpreter** and choose `backend/.venv` (on Windows,
+the executable is `backend/.venv/Scripts/python.exe`).
+
+### What you should observe
+
+- Pylance starts without trying to spawn the nonexistent `backend/.venv/bin/python`.
+- The integrated terminal loads the configured `.env` file.
+
+### Checkpoint
+
+- [ ] The selected interpreter is the backend environment on this machine.
+- [ ] No OS-specific interpreter executable is hardcoded in shared settings.
+
 ## Important locations
 
 - `docs/client-brief.md`: the recurring finance problem and definition of done
@@ -353,6 +384,40 @@ Manual demo set: `02-nl-happy-compact.pdf` (approve), `06-de-invalid-vendor-vat.
 - [ ] You can approve a clean sample and reject a broken one in the browser.
 - [ ] You can explain why Document Intelligence remains primary over the LLM fallback.
 - [ ] Corpus evaluator field accuracy is high and policy codes match the manifest (except duplicate, which needs a peer in SQLite).
+
+## Handle malformed extraction collections
+
+The shared schema parser now reports malformed Document Intelligence arrays and
+skips entries without a usable `valueObject`. Valid line items and tax/payment
+details continue to map normally; warning messages include the collection name
+and index, never extracted document text.
+
+### Why this boundary exists
+
+Provider output is untrusted input. A malformed row should not crash extraction
+or silently become an empty line item, and diagnostic logs should not expose
+invoice content.
+
+### Commands
+
+```bash
+cd backend
+uv run --locked --no-sync ruff check app/schemas
+uv run --locked --no-sync python -c "from app.schemas.invoice.mapping import map_invoice_document; result=map_invoice_document({'fields': {'Items': {'valueArray': [None, {}, {'valueObject': {'Description': {'valueString': 'Line'}}}]}}}); assert len(result.items) == 1 and result.items[0].description.value == 'Line'"
+```
+
+The mock mapping check is local and does not call Azure.
+
+### What you should observe
+
+- Ruff reports no issues in the schema package.
+- The malformed entries are logged and skipped, while the valid line item maps.
+
+### Checkpoint
+
+- [ ] Invalid collection rows do not crash invoice or receipt mapping.
+- [ ] Logs identify only the collection and row index.
+- [ ] Valid rows retain their existing mapped values.
 
 ## Deploy a single container to Azure
 

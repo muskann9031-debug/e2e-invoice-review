@@ -6,11 +6,10 @@ from typing import Any
 from app.schemas.common import (
     TaxDetail,
     parse_address_field,
-    parse_array_field,
     parse_currency_field,
     parse_date_field,
     parse_number_field,
-    parse_object_fields,
+    parse_object_array_field,
     parse_string_field,
 )
 from app.schemas.invoice.model import Installment, InvoiceExtraction, InvoiceLineItem, PaymentDetail
@@ -18,8 +17,7 @@ from app.schemas.invoice.model import Installment, InvoiceExtraction, InvoiceLin
 
 def _map_tax_details(fields: dict[str, Any]) -> list[TaxDetail]:
     tax_details: list[TaxDetail] = []
-    for entry in parse_array_field(fields.get("TaxDetails")):
-        value_object = parse_object_fields(entry.get("valueObject"))
+    for value_object in parse_object_array_field(fields.get("TaxDetails"), "TaxDetails"):
         tax_details.append(
             TaxDetail(
                 amount=parse_currency_field(value_object.get("Amount")),
@@ -31,8 +29,7 @@ def _map_tax_details(fields: dict[str, Any]) -> list[TaxDetail]:
 
 def _map_invoice_items(fields: dict[str, Any]) -> list[InvoiceLineItem]:
     items: list[InvoiceLineItem] = []
-    for entry in parse_array_field(fields.get("Items")):
-        value_object = parse_object_fields(entry.get("valueObject"))
+    for value_object in parse_object_array_field(fields.get("Items"), "Items"):
         items.append(
             InvoiceLineItem(
                 description=parse_string_field(value_object.get("Description")),
@@ -51,8 +48,7 @@ def _map_invoice_items(fields: dict[str, Any]) -> list[InvoiceLineItem]:
 
 def _map_payment_details(fields: dict[str, Any]) -> list[PaymentDetail]:
     payment_details: list[PaymentDetail] = []
-    for entry in parse_array_field(fields.get("PaymentDetails")):
-        value_object = parse_object_fields(entry.get("valueObject"))
+    for value_object in parse_object_array_field(fields.get("PaymentDetails"), "PaymentDetails"):
         payment_details.append(
             PaymentDetail(
                 iban=parse_string_field(value_object.get("IBAN")),
@@ -67,8 +63,10 @@ def _map_payment_details(fields: dict[str, Any]) -> list[PaymentDetail]:
 
 def _map_installments(fields: dict[str, Any]) -> list[Installment]:
     installments: list[Installment] = []
-    for entry in parse_array_field(fields.get("PaidInFourInstallements")):
-        value_object = parse_object_fields(entry.get("valueObject"))
+    for value_object in parse_object_array_field(
+        fields.get("PaidInFourInstallements"),
+        "PaidInFourInstallements",
+    ):
         installments.append(
             Installment(
                 amount=parse_currency_field(value_object.get("Amount")),
