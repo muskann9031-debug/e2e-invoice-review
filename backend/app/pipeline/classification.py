@@ -18,11 +18,11 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 CLASSIFICATION_PROMPT = (
-    "Classify this financial document as invoice or receipt based on its layout and content."
+    "Classify this document as invoice, receipt, or other based on its layout and content."
 )
 
 CLASSIFICATION_INSTRUCTIONS = """\
-You classify European financial documents for a finance team.
+You classify documents for a European finance team.
 
 Choose invoice when the document is a supplier bill requesting payment. Invoices usually
 include an invoice number, supplier and customer details, VAT IDs, line items, totals,
@@ -31,6 +31,8 @@ and often a due date or payment terms.
 Choose receipt when the document records an expense that was already paid. Receipts usually
 show a merchant, transaction date, payment total, and sometimes VAT, but not invoice
 numbers, customer VAT IDs, purchase orders, or payment terms.
+
+Choose other when the document is neither an invoice nor a receipt.
 
 Return your best label, a confidence between 0 and 1, and a brief reason.
 """
@@ -46,6 +48,7 @@ MEDIA_TYPES = {
 class DocumentKind(StrEnum):
     invoice = "invoice"
     receipt = "receipt"
+    other = "other"
 
 
 class DocumentClassification(BaseModel):
@@ -55,7 +58,7 @@ class DocumentClassification(BaseModel):
 
 
 class DocumentClassifier:
-    """Classify a PDF or image as invoice or receipt via Azure OpenAI."""
+    """Classify a PDF or image as invoice, receipt, or other via Azure OpenAI."""
 
     def __init__(self, settings: Settings | None = None) -> None:
         resolved_settings = settings or get_settings()

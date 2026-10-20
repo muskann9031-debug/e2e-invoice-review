@@ -16,7 +16,7 @@ from app.schemas.common import (
     parse_string_field,
     parse_time_field,
 )
-from app.schemas.receipt.model import ReceiptExtraction, ReceiptLineItem
+from app.schemas.receipt.model import ReceiptExtraction, ReceiptLineItem, ReceiptPayment
 
 logger = logging.getLogger(__name__)
 
@@ -51,6 +51,16 @@ def _map_receipt_items(fields: dict[str, Any]) -> list[ReceiptLineItem]:
     return items
 
 
+def _map_receipt_payments(fields: dict[str, Any]) -> list[ReceiptPayment]:
+    return [
+        ReceiptPayment(
+            method=parse_string_field(value_object.get("Method")),
+            amount=parse_currency_field(value_object.get("Amount")),
+        )
+        for value_object in parse_object_array_field(fields.get("Payments"), "Payments")
+    ]
+
+
 def _map_merchant_aliases(fields: dict[str, Any]) -> list[ExtractedString]:
     aliases = []
     entries = parse_array_field(fields.get("MerchantAliases"), "MerchantAliases")
@@ -77,6 +87,7 @@ def map_receipt_document(document: dict[str, Any]) -> ReceiptExtraction:
         merchant_phone_number=parse_string_field(fields.get("MerchantPhoneNumber")),
         merchant_address=parse_address_field(fields.get("MerchantAddress")),
         merchant_aliases=_map_merchant_aliases(fields),
+        country_region=parse_string_field(fields.get("CountryRegion")),
         transaction_date=parse_date_field(fields.get("TransactionDate")),
         transaction_time=parse_time_field(fields.get("TransactionTime")),
         arrival_date=parse_date_field(fields.get("ArrivalDate")),
@@ -86,6 +97,7 @@ def map_receipt_document(document: dict[str, Any]) -> ReceiptExtraction:
         tip=parse_currency_field(fields.get("Tip")),
         total=parse_currency_field(fields.get("Total")),
         items=_map_receipt_items(fields),
+        payments=_map_receipt_payments(fields),
         tax_details=_map_tax_details(fields),
     )
 

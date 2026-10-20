@@ -28,6 +28,11 @@ class ReceiptLineItem(BaseModel):
     category: ExtractedString | None = None
 
 
+class ReceiptPayment(BaseModel):
+    method: ExtractedString | None = None
+    amount: ExtractedMoney | None = None
+
+
 class ReceiptExtraction(BaseModel):
     document_type: Literal["receipt"] = "receipt"
     model_id: str | None = None
@@ -37,6 +42,7 @@ class ReceiptExtraction(BaseModel):
     merchant_phone_number: ExtractedString | None = None
     merchant_address: ExtractedAddress | None = None
     merchant_aliases: list[ExtractedString] = []
+    country_region: ExtractedString | None = None
 
     transaction_date: ExtractedDate | None = None
     transaction_time: ExtractedTime | None = None
@@ -49,6 +55,7 @@ class ReceiptExtraction(BaseModel):
     total: ExtractedMoney | None = None
 
     items: list[ReceiptLineItem] = []
+    payments: list[ReceiptPayment] = []
     tax_details: list[TaxDetail] = []
 
     @computed_field

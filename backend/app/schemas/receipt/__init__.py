@@ -1,3 +1,5 @@
-from app.schemas.receipt.model import Receipt, ReceiptLineItem, ReceiptPayment
+from app.schemas.receipt.model import ReceiptExtraction, ReceiptLineItem, ReceiptPayment
 
-__all__ = ["Receipt", "ReceiptLineItem", "ReceiptPayment"]
+Receipt = ReceiptExtraction
+
+__all__ = ["Receipt", "ReceiptExtraction", "ReceiptLineItem", "ReceiptPayment"]

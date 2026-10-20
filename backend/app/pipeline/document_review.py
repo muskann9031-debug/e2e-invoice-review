@@ -7,15 +7,12 @@ from app.document_review.base import DocumentReviewer, DocumentReviewError
 from app.document_review.reconciliation import merge_document_extractions
 from app.document_review.schemas import DocumentReview
 from app.documents.projection import project_extraction
+from app.pipeline.base import UnsupportedDocumentError
 
 if TYPE_CHECKING:
     from app.pipeline.base import PipelineContext
 
 logger = logging.getLogger(__name__)
-
-
-class UnsupportedDocumentError(RuntimeError):
-    """Raised when the independent LLM review classifies the file as unsupported."""
 
 
 class DocumentReviewStep:

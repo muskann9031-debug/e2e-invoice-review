@@ -468,3 +468,55 @@ cd ../frontend && pnpm exec tsc -b --pretty false && pnpm lint && VITE_API_BASE_
 - [ ] Container image builds (`az acr build` or local Docker).
 - [ ] Deployed `/health` is open; API is gated; browser login unlocks a sample upload.
 - [ ] You can tear down hosting resources without deleting the whole resource group.
+
+## Integrate the complete portfolio application
+
+### Outcome
+
+The integration branch combines the complete FastAPI and React review workflow
+with the recovery branch's Azure deployment configuration and explicit
+invoice/receipt/other classification. The active extraction schemas keep
+Document Intelligence values, OCR content, confidence, and line items in the
+existing shared mapping structure.
+
+### Why this boundary exists
+
+The deployment name is configuration, not a credential or application rule.
+`AZURE_OPENAI_DEPLOYMENT` can select the resource's deployed model while the
+default remains useful for the portfolio environment. A document classified
+as `other` is rejected before either invoice or receipt extraction, rather than
+falling through to the receipt model.
+
+### Commands
+
+```bash
+cd backend
+uv run --locked --no-sync ruff check app scripts
+
+cd ../frontend
+pnpm exec tsc -b --pretty false
+pnpm lint
+VITE_API_BASE_URL=/ pnpm build
+```
+
+These checks do not upload documents or call Azure. A real document walkthrough
+requires local credentials and may use billable Azure services.
+
+### What you should observe
+
+- The default Azure OpenAI deployment is `gpt-6-astra`, and setting
+  `AZURE_OPENAI_DEPLOYMENT` overrides that default.
+- Classification produces `invoice`, `receipt`, or `other`.
+- An `other` result returns an unsupported-document error without invoking
+  Document Intelligence.
+- The existing invoice and receipt mappings continue to populate the active
+  evidence-aware extraction models.
+- Backend lint and frontend type-check, lint, and production build complete
+  successfully.
+
+### Checkpoint
+
+- [ ] Keep the development and recovery branches intact; integrate selectively
+  on the portfolio integration branch.
+- [ ] Confirm no credentials or local `.env` files are tracked.
+- [ ] Run the listed non-billable checks before committing or pushing.

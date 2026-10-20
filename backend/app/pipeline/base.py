@@ -17,6 +17,10 @@ from app.schemas.receipt.model import ReceiptExtraction
 logger = logging.getLogger(__name__)
 
 
+class UnsupportedDocumentError(RuntimeError):
+    """Raised when a file is not a supported invoice or receipt."""
+
+
 class PipelineContext(BaseModel):
     """Shared state passed through each pipeline step."""
 

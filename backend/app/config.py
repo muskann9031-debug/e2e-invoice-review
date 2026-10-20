@@ -6,7 +6,7 @@ from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 BACKEND_ROOT = Path(__file__).resolve().parents[1]
-DEPLOYMENT_NAME = "gpt-5.6-terra"
+DEPLOYMENT_NAME = "gpt-6-astra"
 
 
 @dataclass(frozen=True)

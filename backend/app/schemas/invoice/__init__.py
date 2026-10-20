@@ -1,3 +1,5 @@
-from app.schemas.invoice.model import Invoice, InvoiceLineItem
+from app.schemas.invoice.model import InvoiceExtraction, InvoiceLineItem
 
-__all__ = ["Invoice", "InvoiceLineItem"]
+Invoice = InvoiceExtraction
+
+__all__ = ["Invoice", "InvoiceExtraction", "InvoiceLineItem"]

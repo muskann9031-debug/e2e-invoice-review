@@ -61,8 +61,11 @@ def _field_confidence(field: dict[str, Any] | None) -> float | None:
 def parse_string_field(field: dict[str, Any] | None) -> ExtractedString | None:
     if not field:
         return None
+    value = field.get("valueString")
+    if value is None and field.get("valueCountryRegion") is not None:
+        value = str(field["valueCountryRegion"])
     return ExtractedString(
-        value=field.get("valueString") or field.get("content"),
+        value=value or field.get("content"),
         content=field.get("content"),
         confidence=_field_confidence(field),
     )

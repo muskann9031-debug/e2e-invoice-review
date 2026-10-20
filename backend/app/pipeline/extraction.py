@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
+from app.pipeline.base import UnsupportedDocumentError
 from app.pipeline.classification import DocumentKind
 from app.schemas.invoice.mapping import map_invoice_result
 from app.schemas.receipt.mapping import map_receipt_result
@@ -35,10 +36,14 @@ class ExtractionStep:
             logger.info("Extracting with Document Intelligence model %s", PREBUILT_INVOICE_MODEL)
             result = self._service.analyze_invoice(document_path)
             extraction = map_invoice_result(self._service.to_dict(result))
-        else:
+        elif ctx.classification.document_kind == DocumentKind.receipt:
             logger.info("Extracting with Document Intelligence model %s", PREBUILT_RECEIPT_MODEL)
             result = self._service.analyze_receipt(document_path)
             extraction = map_receipt_result(self._service.to_dict(result))
+        else:
+            raise UnsupportedDocumentError(
+                "The uploaded file is not a supported invoice or receipt."
+            )
 
         logger.info(
             "Mapped extraction (%s) with %d line item(s)",

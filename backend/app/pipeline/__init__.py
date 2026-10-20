@@ -1,14 +1,20 @@
 from __future__ import annotations
 
 from app.document_review.base import DocumentReviewer
-from app.pipeline.base import DuplicateChecker, Pipeline, PipelineContext, PipelineStep
+from app.pipeline.base import (
+    DuplicateChecker,
+    Pipeline,
+    PipelineContext,
+    PipelineStep,
+    UnsupportedDocumentError,
+)
 from app.pipeline.classification import (
     ClassificationStep,
     DocumentClassification,
     DocumentClassifier,
     DocumentKind,
 )
-from app.pipeline.document_review import DocumentReviewStep, UnsupportedDocumentError
+from app.pipeline.document_review import DocumentReviewStep
 from app.pipeline.extraction import ExtractionStep
 from app.pipeline.gl_categorization import (
     GlCategorizationStep,
